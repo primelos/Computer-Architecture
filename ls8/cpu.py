@@ -2,33 +2,62 @@
 
 import sys
 
+LDI = 0b10000010
+PRN = 0b01000111
+HLT = 0b00000001
+
+
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
         """Construct a new CPU."""
-        pass
+        self.pc = 0
+        self.reg = [0] * 8
+        self.ram = [0] * 256
+
 
     def load(self):
         """Load a program into memory."""
 
         address = 0
+        try:
+            with open (sys.argv[1]) as files:
+                for i in files:
+                    comment = i.strip().split('#')
+                    result = comment[0].strip()
+                    if result == '':
+                        continue
+                    instruction = int(result, 2)
+                    self.ram[address] = instruction
+                    address += 1
+        except FileExistsError:
+            print('missing')
+            sys.exit(1)
 
+    def ram_read(self, read_address):
+        MDR = self.ram[read_address]
+        return MDR
+    
+    def ram_write(self, value, write_address):
+        self.ram[write_address] = value
+        MAR = value
+        return MAR
         # For now, we've just hardcoded a program:
 
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
+        # program = [
+        #     # From print8.ls8
+        #     0b10000010, # LDI R0,8
+        #     0b00000000,
+        #     0b00001000,
+        #     0b01000111, # PRN R0
+        #     0b00000000,
+        #     0b00000001, # HLT
+        # ]
 
-        for instruction in program:
-            self.ram[address] = instruction
-            address += 1
+        # for instruction in program:
+        #     self.ram[address] = instruction
+        #     address += 1
 
 
     def alu(self, op, reg_a, reg_b):
@@ -62,4 +91,13 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
+        while True:
+            instruction = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            operand_b = self.ram_read(self.pc + 1)
+            
+            if instruction == LDI:
+                self.reg[operand_a] = operand_b
+                self.pc += 3
+            
+            elif
