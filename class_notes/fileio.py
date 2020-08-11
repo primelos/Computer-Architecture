@@ -26,10 +26,9 @@ if len(sys.argv) < 2:
     sys.exit()
 
 try: 
-    with open (sys.argv[0]) as file:
+    with open (sys.argv) as file:
         for line in file:
             print(line)
 except FileNotFoundError:
     print(f'{sys.argv[0]}: {sys.argv[1]} not found')
 
-    

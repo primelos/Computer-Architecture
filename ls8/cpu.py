@@ -2,10 +2,12 @@
 
 import sys
 
-LDI = 0b10000010
-PRN = 0b01000111
-HLT = 0b00000001
+LDI = 0b10000010 #130
+PRN = 0b01000111 #71
+HLT = 0b00000001 #1
+MUL = 0b10100010 #162
 
+# print(sys.argv[1])
 
 class CPU:
     """Main CPU class."""
@@ -16,25 +18,6 @@ class CPU:
         self.reg = [0] * 8
         self.ram = [0] * 256
 
-
-    def load(self):
-        """Load a program into memory."""
-
-        address = 0
-        try:
-            with open (sys.argv[1]) as files:
-                for i in files:
-                    comment = i.strip().split('#')
-                    result = comment[0].strip()
-                    if result == '':
-                        continue
-                    instruction = int(result, 2)
-                    self.ram[address] = instruction
-                    address += 1
-        except FileExistsError:
-            print('missing')
-            sys.exit(1)
-
     def ram_read(self, read_address):
         MDR = self.ram[read_address]
         return MDR
@@ -43,6 +26,31 @@ class CPU:
         self.ram[write_address] = value
         MAR = value
         return MAR
+
+    def load(self, filename):
+        """Load a program into memory."""
+
+        address = 0
+        try:
+            with open (sys.argv[1]) as files:
+                # for a in files:
+                #     print(a)
+                for i in files:
+                    print('i', i)
+                    comment = i.strip().split('#')
+                    print('comment',comment)
+                    result = comment[0].strip()
+                    print('result', result)
+                    if result == '':
+                        continue
+                    instruction = int(result, 2)
+                    self.ram[address] = instruction
+                    print('self.ram[address]',self.ram[address])
+                    address += 1
+        except FileExistsError:
+            print('missing')
+            sys.exit(1)
+
         # For now, we've just hardcoded a program:
 
         # program = [
@@ -91,13 +99,25 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+
         while True:
             instruction = self.ram[self.pc]
-            operand_a = self.ram_read(self.pc + 1)
-            operand_b = self.ram_read(self.pc + 1)
-            
+            num_a = self.ram_read(self.pc + 1)
+            print('num_a', num_a)
+            num_b = self.ram_read(self.pc + 2)
+            print('num_b',num_b)
             if instruction == LDI:
-                self.reg[operand_a] = operand_b
+                self.reg[num_a] = num_b
                 self.pc += 3
             
-            elif
+            elif instruction == PRN:
+                print(self.reg[num_a])
+                self.pc += 2
+            elif instruction == MUL:
+                self.alu(instruction, num_a, num_b)
+                self.pc +=3
+            elif instruction == HLT:
+                break
+            else:
+                print(f'not working')
+                sys.exit(1)
