@@ -2,10 +2,12 @@
 
 import sys
 
+HLT = 0b00000001 #1
 LDI = 0b10000010 #130
 PRN = 0b01000111 #71
-HLT = 0b00000001 #1
 MUL = 0b10100010 #162
+PUSH = 0b01000101
+POP = 0b01000110
 
 # print(sys.argv[1])
 
@@ -17,15 +19,17 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.running = True
+        # reserve sp points to F4
+        self.reg[7] = 0xF4    # -> reg 244
 
-    def ram_read(self, read_address):
-        MDR = self.ram[read_address]
-        return MDR
+    def ram_read(self, MAR):
+        return self.ram[MAR]
+        
     
-    def ram_write(self, value, write_address):
-        self.ram[write_address] = value
-        MAR = value
-        return MAR
+    def ram_write(self, MDR, MAR):
+        self.ram[MAR] = MDR
+        
 
     def load(self, filename):
         """Load a program into memory."""
@@ -99,25 +103,39 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
+        while self.running:
+            IR = self.ram[self.pc]
+            operand_a = self.ram_read(self.pc + 1)
+            print('operand_a', operand_a)
+            operand_b = self.ram_read(self.pc + 2)
+            print('operand_b',operand_b)
 
-        while True:
-            instruction = self.ram[self.pc]
-            num_a = self.ram_read(self.pc + 1)
-            print('num_a', num_a)
-            num_b = self.ram_read(self.pc + 2)
-            print('num_b',num_b)
-            if instruction == LDI:
-                self.reg[num_a] = num_b
-                self.pc += 3
+            self.pc += 1 + (IR >> 6)
+
+            if IR == LDI:
+                self.reg[operand_a] = operand_b
             
-            elif instruction == PRN:
-                print(self.reg[num_a])
-                self.pc += 2
-            elif instruction == MUL:
-                self.alu(instruction, num_a, num_b)
-                self.pc +=3
-            elif instruction == HLT:
-                break
+            elif IR == PRN:
+                print(self.reg[operand_a])
+
+            elif IR == MUL:
+                self.alu(IR, operand_a, operand_b)
+
+            elif IR == HLT:
+                self.running = False
+            
+            elif IR == PUSH:
+                reg_num = self.ram_read(self.pc + 1)
+                SP = self.reg[7]
+                value = self.reg[reg_num]
+                self.ram_write(value, SP)
+
+            elif IR == POP:
+                reg_num = self.ram_read(self.pc + 1)
+                SP = self.reg[7]
+                self.reg[reg_num] = self.ram_read(SP)
+                self.reg[7] += 1
+
             else:
                 print(f'not working')
                 sys.exit(1)
