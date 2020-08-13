@@ -7,7 +7,7 @@ from cpu import CPU
 
 cpu = CPU()
 
-cpu.load(sys.argv[-1])
+cpu.load(sys.argv[1])
 cpu.run()
 print(cpu.reg)
 print(cpu.ram)
