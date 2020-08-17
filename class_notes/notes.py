@@ -1,4 +1,3 @@
-import sys
 
 print_tim =      0b00000001
 halt      =      0b00000010
@@ -8,8 +7,10 @@ print_register = 0b01000101
 add       =      0b10000110  # command 6
 push      =      0b01000111  # 1 operand command 7  
 pop       =      0b01001000  # 1 operand command 8
-call      =      0b01001001
-ret       =      0b00001010
+call      =      0b01011001
+ret       =      0b00011010
+
+import sys
 
 # moved over to our_program.ls8 in binary 
 # memory_arr = [
@@ -49,7 +50,7 @@ def load_program():
 
                 if possible_num[0] == '1' or possible_num[0] == '0':
                     num = possible_num[:8]
-                    print(f'{num}: {int(num,2)}')
+                    # print(f'{num}: {int(num,2)}')
 
                     memory_arr[address] = int(num, 2)
                     address += 1
@@ -61,23 +62,20 @@ load_program()
 
 registers = [None] * 8
 registers[7] = 0xF4 
-
+print(registers[7])
 
 while running:
     command = memory_arr[pc]
 
     num_operands = command >> 6
     # print('num_operands',num_operands)
-    
 
     if command == print_tim:
         print('print_tim', print_tim)
 
     elif command == print_num:
-        # print('co_num',command)
-        print('pc_num',pc)
         number_to_print = memory_arr[pc + 1]
-        print('print_num',number_to_print, 'command', command)
+        print(number_to_print)
 
     elif command == save:
         # print('command_save', command)  #cmd 4
@@ -118,6 +116,9 @@ while running:
         registers[register_num] = popped_value
         registers[7] += 1
 
+    elif command == halt:
+        running = False
+
     elif command == call:
         next_instruction_address = pc + 2
         registers[7] -= 1
@@ -133,18 +134,17 @@ while running:
         registers[7] += 1
         pc = return_address
 
-    command_sets_pc_directly = ((command >> 4) & 0b0001) == 1:
+    command_sets_pc_directly = ((command >> 4) & 0b0001) == 1
+    
     if not command_sets_pc_directly:
         pc += num_operands + 1
-        
 
-    elif command == halt:
-        running = False
 
-    else:
-        'error in program'
 
-    pc += num_operands + 1
+    # else:
+    #     'error in program'
+
+    # pc += num_operands + 1
     # print('command', command)
     # print('pc',pc)
 
